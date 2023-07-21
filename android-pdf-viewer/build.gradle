@@ -26,6 +26,7 @@ ext {
 
 android {
     compileSdkVersion 28
+    namespace 'com.github.barteksc.pdfviewer'
 
     defaultConfig {
         minSdkVersion 14
@@ -40,5 +41,3 @@ dependencies {
     implementation 'com.android.support:support-compat:28.0.0'
     api 'com.github.barteksc:pdfium-android:1.9.0'
 }
-
-apply from: 'bintray.gradle'

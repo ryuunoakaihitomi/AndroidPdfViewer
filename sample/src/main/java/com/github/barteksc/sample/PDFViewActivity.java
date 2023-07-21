@@ -21,12 +21,16 @@ import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Color;
 import android.net.Uri;
+import android.os.Bundle;
 import android.provider.OpenableColumns;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.widget.Toast;
 
 import com.github.barteksc.pdfviewer.PDFView;
@@ -35,20 +39,11 @@ import com.github.barteksc.pdfviewer.listener.OnPageChangeListener;
 import com.github.barteksc.pdfviewer.listener.OnPageErrorListener;
 import com.github.barteksc.pdfviewer.scroll.DefaultScrollHandle;
 import com.github.barteksc.pdfviewer.util.FitPolicy;
+import com.github.barteksc.sample.databinding.ActivityMainBinding;
 import com.shockwave.pdfium.PdfDocument;
-
-import org.androidannotations.annotations.AfterViews;
-import org.androidannotations.annotations.EActivity;
-import org.androidannotations.annotations.NonConfigurationInstance;
-import org.androidannotations.annotations.OnActivityResult;
-import org.androidannotations.annotations.OptionsItem;
-import org.androidannotations.annotations.OptionsMenu;
-import org.androidannotations.annotations.ViewById;
 
 import java.util.List;
 
-@EActivity(R.layout.activity_main)
-@OptionsMenu(R.menu.options)
 public class PDFViewActivity extends AppCompatActivity implements OnPageChangeListener, OnLoadCompleteListener,
         OnPageErrorListener {
 
@@ -60,18 +55,88 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
     public static final String SAMPLE_FILE = "sample.pdf";
     public static final String READ_EXTERNAL_STORAGE = "android.permission.READ_EXTERNAL_STORAGE";
 
-    @ViewById
     PDFView pdfView;
 
-    @NonConfigurationInstance
     Uri uri;
 
-    @NonConfigurationInstance
     Integer pageNumber = 0;
 
     String pdfFileName;
 
-    @OptionsItem(R.id.pickFile)
+    private ActivityMainBinding binding;
+
+    public static final class NonConfigurationInstanceHolder {
+        Object superHolder;
+        Uri uri;
+        Integer pageNumber;
+
+        private NonConfigurationInstanceHolder() {
+        }
+    }
+
+    @Override
+    public Object getLastCustomNonConfigurationInstance() {
+        NonConfigurationInstanceHolder $ = (NonConfigurationInstanceHolder) super.getLastCustomNonConfigurationInstance();
+        return $ == null ? null : $.superHolder;
+    }
+
+    @Override
+    public Object onRetainCustomNonConfigurationInstance() {
+        NonConfigurationInstanceHolder $ = new NonConfigurationInstanceHolder();
+        $.superHolder = super.onRetainCustomNonConfigurationInstance();
+        $.uri = uri;
+        $.pageNumber = pageNumber;
+        return $;
+    }
+
+    @Override
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        restoreConfigurations();
+
+        binding = ActivityMainBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
+
+        setViewVariables();
+        afterViews();
+    }
+
+    private void restoreConfigurations() {
+        NonConfigurationInstanceHolder $ = (NonConfigurationInstanceHolder) getLastCustomNonConfigurationInstance();
+        if ($ != null) {
+            uri = $.uri;
+            pageNumber = $.pageNumber;
+        }
+    }
+
+    private void setViewVariables() {
+        pdfView = binding.pdfView;
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.options, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == R.id.pickFile) {
+            pickFile();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_CODE) {
+            onResult(resultCode, data);
+        }
+    }
+
     void pickFile() {
         int permissionCheck = ContextCompat.checkSelfPermission(this,
                 READ_EXTERNAL_STORAGE);
@@ -100,7 +165,6 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
         }
     }
 
-    @AfterViews
     void afterViews() {
         pdfView.setBackgroundColor(Color.LTGRAY);
         if (uri != null) {
@@ -140,7 +204,6 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
                 .load();
     }
 
-    @OnActivityResult(REQUEST_CODE)
     public void onResult(int resultCode, Intent intent) {
         if (resultCode == RESULT_OK) {
             uri = intent.getData();
