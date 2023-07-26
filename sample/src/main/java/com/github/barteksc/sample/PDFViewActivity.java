@@ -103,7 +103,7 @@ public class PDFViewActivity extends AppCompatActivity implements OnPageChangeLi
     }
 
     private void restoreConfigurations() {
-        NonConfigurationInstanceHolder $ = (NonConfigurationInstanceHolder) getLastCustomNonConfigurationInstance();
+        NonConfigurationInstanceHolder $ = (NonConfigurationInstanceHolder) super.getLastCustomNonConfigurationInstance();
         if ($ != null) {
             uri = $.uri;
             pageNumber = $.pageNumber;
