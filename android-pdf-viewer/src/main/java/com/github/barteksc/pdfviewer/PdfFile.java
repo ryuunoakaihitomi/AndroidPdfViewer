@@ -34,7 +34,7 @@ import java.util.List;
 
 class PdfFile {
 
-    private static final int MAX_PAGES = 3;
+    private static final int MAX_PAGES = 10;
 
     private static final Object lock = new Object();
     private PdfDocument pdfDocument;

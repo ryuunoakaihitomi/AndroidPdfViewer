@@ -1,4 +1,7 @@
 apply plugin: 'com.android.library'
+apply plugin: 'maven-publish'
+
+def VERSION = "zqy_mod_1.0.0"
 
 ext {
     bintrayRepo = 'maven'
@@ -13,7 +16,7 @@ ext {
     siteUrl = 'https://github.com/barteksc/AndroidPdfViewer'
     gitUrl = 'https://github.com/barteksc/AndroidPdfViewer.git'
 
-    libraryVersion = '3.2.0-beta.1'
+    libraryVersion = VERSION
 
     developerId = 'barteksc'
     developerName = 'Bartosz Schiller'
@@ -32,27 +35,33 @@ android {
         minSdkVersion 14
         targetSdkVersion 28
         versionCode 1
-        versionName "3.2.0-beta.1"
+        versionName VERSION
     }
 
-}
-
-def urlFile = { url, name ->
-    File file = new File("$buildDir/dl_remote_aar/${name}")
-    file.parentFile.mkdirs()
-    if (!file.exists()) {
-        new URL(url).withInputStream { downloadStream ->
-            file.withOutputStream { fileOut ->
-                fileOut << downloadStream
-            }
+    publishing {
+        singleVariant("release") {
+            withSourcesJar()
         }
     }
-    files(file.absolutePath)
+}
+
+afterEvaluate {
+
+    publishing {
+        publications {
+            release(MavenPublication) {
+                from components.release
+                groupId publishedGroupId
+                artifactId artifact
+                version libraryVersion
+            }
+        }
+
+        repositories { maven { url "./../local-maven-repository" } }
+    }
 }
 
 dependencies {
     implementation 'com.android.support:support-compat:28.0.0'
-    api urlFile('https://github.com/ryuunoakaihitomi/standalone-aar-repo/raw/main/PdfiumAndroid_zqy_mod_1.0.0-release.aar', 'PdfiumAndroid.aar')
-
-//    api project(':PdfiumAndroid-bin')
+    api 'com.github.barteksc:pdfium-android:zqy_mod_1.0.0'
 }
